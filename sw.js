@@ -1,16 +1,16 @@
 // Mi Ponche — service worker: la app funciona sin internet.
 // Al publicar una nueva versión, cambia el número de VERSION.
-const VERSION = 'miponche-v1.1.0';
+const VERSION = 'miponche-v1.1.1';
 const FILES = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/apple-touch-icon.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (e) => {
