@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Mi Ponche</title>
+<meta name="description" content="Ponchar entrada, almuerzo y salida, y calcular cuánto te deben pagar.">
+<meta name="theme-color" content="#0E1110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Ponche">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ PONCHAR ============ -->
+  <section class="view active" id="view-punch" aria-label="Ponchar">
+    <header class="clock-wrap">
+      <div class="clock" aria-live="off"><span id="clock">--:--:--</span><span class="ampm" id="ampm"></span></div>
+      <div class="date" id="date"></div>
+    </header>
+
+    <div class="status" id="status"></div>
+
+    <div class="actions" id="actions"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Hoy</div>
+        <button class="adjust-btn" id="adjustToday" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>Ajustar</button>
+      </div>
+      <div class="stats3">
+        <div><div class="stat-label">Trabajado</div><div class="stat-val" id="todayWorked">0h 00m 00s</div></div>
+        <div><div class="stat-label">Almuerzo</div><div class="stat-val" id="todayLunch">0h 00m</div></div>
+        <div><div class="stat-label">Ganado</div><div class="stat-val accent" id="todayPay">$0.00</div></div>
+      </div>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+
+    <button class="card week-mini" id="weekMini" type="button">
+      <div>
+        <div class="card-title">Esta semana</div>
+        <div class="week-mini-hours" id="weekMiniHours">0h 00m</div>
+      </div>
+      <div class="week-mini-right">
+        <div class="stat-label">Te deben (bruto)</div>
+        <div class="week-mini-pay" id="weekMiniPay">$0.00</div>
+      </div>
+    </button>
+  </section>
+
+  <!-- ============ SEMANA ============ -->
+  <section class="view" id="view-week" aria-label="Semana">
+    <div class="topbar">
+      <button class="icon-btn" id="prevWeek" type="button" aria-label="Semana anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="topbar-title">
+        <div class="h1" id="weekRange"></div>
+        <button class="link-btn" id="thisWeek" type="button">Ir a esta semana</button>
+      </div>
+      <button class="icon-btn" id="nextWeek" type="button" aria-label="Semana siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+
+    <div class="card" id="weekSummary"></div>
+
+    <div class="card">
+      <label class="card-title" for="paidInput">¿Cuánto te pagaron esta semana? (bruto)</label>
+      <div class="paid-row">
+        <span class="money-prefix">$</span>
+        <input id="paidInput" class="input money" type="text" inputmode="decimal" placeholder="Ej. 600.00" autocomplete="off">
+      </div>
+      <div class="paid-diff" id="paidDiff"></div>
+      <p class="hint">Usa el monto <b>bruto</b> de tu talonario (antes de impuestos y descuentos) para comparar bien.</p>
+    </div>
+
+    <div class="days" id="weekDays"></div>
+
+    <button class="btn ghost full" id="addShiftWeek" type="button">+ Agregar turno a mano</button>
+  </section>
+
+  <!-- ============ HISTORIAL ============ -->
+  <section class="view" id="view-history" aria-label="Historial">
+    <div class="h1 page-title">Historial</div>
+    <p class="hint hist-hint">Tus semanas guardadas por mes. Toca una carpeta para abrirla y una semana para ver el detalle.</p>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ============ AJUSTES ============ -->
+  <section class="view" id="view-settings" aria-label="Ajustes">
+    <div class="h1 page-title">Ajustes</div>
+
+    <div class="card form">
+      <label class="field">
+        <span>Pago por hora</span>
+        <div class="paid-row"><span class="money-prefix">$</span><input id="setRate" class="input money" type="text" inputmode="decimal"></div>
+        <small>Se aplica a los turnos nuevos. Los turnos ya guardados mantienen su tarifa (puedes cambiarla editando el turno).</small>
+      </label>
+      <label class="field">
+        <span>La semana de pago empieza el</span>
+        <select id="setWeekStart" class="input">
+          <option value="1">Lunes</option>
+          <option value="0">Domingo</option>
+          <option value="6">Sábado</option>
+          <option value="2">Martes</option>
+          <option value="3">Miércoles</option>
+          <option value="4">Jueves</option>
+          <option value="5">Viernes</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card form">
+      <label class="switch-row">
+        <span><b>Horas extra (overtime)</b><br><small>Por ley federal (EE. UU.), lo que pase de 40 horas en la semana se paga a tiempo y medio.</small></span>
+        <input type="checkbox" id="setOt" class="switch">
+      </label>
+      <div class="two">
+        <label class="field"><span>Después de (horas)</span><input id="setOtAfter" class="input" type="text" inputmode="decimal"></label>
+        <label class="field"><span>Multiplicador</span><input id="setOtMult" class="input" type="text" inputmode="decimal"></label>
+      </div>
+    </div>
+
+    <div class="card form">
+      <div class="card-title">Tus datos</div>
+      <button class="btn ghost full" id="addShiftSettings" type="button">+ Agregar turno a mano</button>
+      <button class="btn ghost full" id="exportCsv" type="button">Exportar registro (CSV / Excel)</button>
+      <button class="btn ghost full" id="exportJson" type="button">Guardar copia de seguridad</button>
+      <label class="btn ghost full file-btn">Restaurar copia de seguridad<input type="file" id="importJson" accept=".json,application/json"></label>
+      <button class="btn danger-ghost full" id="wipe" type="button">Borrar todo</button>
+      <p class="hint">Tus horas se guardan solo en este teléfono. Haz una copia de seguridad de vez en cuando y guárdala en Archivos o iCloud.</p>
+    </div>
+    <p class="hint center">Mi Ponche · v1.1</p>
+  </section>
+
+  <!-- ============ TAB BAR ============ -->
+  <nav class="tabbar" aria-label="Secciones">
+    <button class="tab active" data-view="punch" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>Ponchar</span>
+    </button>
+    <button class="tab" data-view="week" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Semana</span>
+    </button>
+    <button class="tab" data-view="history" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Historial</span>
+    </button>
+    <button class="tab" data-view="settings" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg><span>Ajustes</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastBtn" class="toast-btn" hidden>Deshacer</button></div>
+
+<script src="app.js"></script>
+</body>
+</html>
