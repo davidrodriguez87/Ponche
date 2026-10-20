@@ -17,7 +17,7 @@ const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD
 
 /* ---------------- Datos ---------------- */
 function defaults() {
-  return { v: 1, settings: { rate: 15, weekStart: 1, ot: true, otAfter: 40, otMult: 1.5 }, shifts: [], paid: {} };
+  return { v: 1, settings: { rate: 15, weekStart: 3, payDay: 5, ot: true, otAfter: 40, otMult: 1.5 }, shifts: [], paid: {} };
 }
 function load() {
   try {
@@ -26,6 +26,7 @@ function load() {
       const s = JSON.parse(raw);
       if (s && s.v === 1 && Array.isArray(s.shifts)) {
         const d = defaults();
+        if (s.settings && s.settings.payDay == null) { s.settings.weekStart = 3; s.settings.payDay = 5; }
         return { v: 1, settings: Object.assign(d.settings, s.settings || {}), shifts: s.shifts, paid: s.paid || {} };
       }
     }
@@ -256,6 +257,8 @@ let viewWeek = weekStartOf(Date.now());
 function renderWeek(now) {
   const sum = weekSummary(viewWeek, now);
   $('weekRange').textContent = fmtRange(viewWeek);
+  { const cut = addDays(viewWeek, 6), pd = addDays(cut, ((Number(state.settings.payDay) - new Date(cut).getDay() + 7) % 7) || 7);
+    $('weekPay').textContent = `Corte: ${DAYS[new Date(cut).getDay()]} ${fmtShortDate(cut)} · Pago: ${DAYS[new Date(pd).getDay()]} ${fmtShortDate(pd)}`; }
   $('thisWeek').style.visibility = viewWeek === weekStartOf(now) ? 'hidden' : 'visible';
   renderWeekSummary(sum);
   renderWeekDays(sum, now);
@@ -399,7 +402,8 @@ function renderSettings() {
   const st = state.settings;
   const set = (id, v) => { if (document.activeElement !== $(id)) $(id).value = v; };
   set('setRate', Number(st.rate).toFixed(2));
-  $('setWeekStart').value = String(st.weekStart);
+  $('setCutoff').value = String((Number(st.weekStart) + 6) % 7);
+  $('setPayDay').value = String(st.payDay);
   $('setOt').checked = !!st.ot;
   set('setOtAfter', st.otAfter);
   set('setOtMult', st.otMult);
@@ -660,7 +664,8 @@ $('setRate').addEventListener('change', () => {
   }
   renderAll(); toast('Pago por hora: ' + money.format(n));
 });
-$('setWeekStart').addEventListener('change', () => { state.settings.weekStart = Number($('setWeekStart').value); viewWeek = weekStartOf(Date.now()); save(); renderAll(); });
+$('setPayDay').addEventListener('change', () => { state.settings.payDay = Number($('setPayDay').value); save(); renderAll(); });
+$('setCutoff').addEventListener('change', () => { state.settings.weekStart = (Number($('setCutoff').value) + 1) % 7; viewWeek = weekStartOf(Date.now()); save(); renderAll(); });
 $('setOt').addEventListener('change', () => { state.settings.ot = $('setOt').checked; save(); renderAll(); });
 $('setOtAfter').addEventListener('change', () => { const n = parseNum($('setOtAfter').value); if (n > 0) state.settings.otAfter = n; save(); renderAll(); });
 $('setOtMult').addEventListener('change', () => { const n = parseNum($('setOtMult').value); if (n >= 1) state.settings.otMult = n; save(); renderAll(); });

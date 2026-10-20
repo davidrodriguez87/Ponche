@@ -1,6 +1,6 @@
 // Mi Ponche — service worker: la app funciona sin internet.
 // Al publicar una nueva versión, cambia el número de VERSION.
-const VERSION = 'miponche-v1.1.1';
+const VERSION = 'miponche-v1.2.0';
 const FILES = [
   './',
   './index.html',
